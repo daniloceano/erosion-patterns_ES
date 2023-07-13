@@ -6,27 +6,41 @@
 #    By: Danilo <danilo.oceano@gmail.com>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/13 17:48:01 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/13 19:00:41 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-import glob
-import numpy as np
+import os
 import pandas as pd
 import xarray as xr
-import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+from celluloid import Camera
 
-path_era_files = '/p1-nemo/mbonjour/novos_wt_dados/'
-df = pd.read_csv('../database/dates-limits.csv', index_col=0, parse_dates=[0])
+PATH_ERA_FILES = '/p1-nemo/mbonjour/novos_wt_dados/'
+DF_FILENAME = '../database/dates-limits.csv'
+OUTPUT_DIR = 'animation_output/'
 
-def plot_map_hgt_winds(lon, lat, hgt, u, v, date, subsampling_factor=10):
+def load_dataframe(filename):
+    df = pd.read_csv(filename, index_col=0, parse_dates=[0])
+    return df
+
+def load_data(year, start_date, end_date):
+    u_file = os.path.join(PATH_ERA_FILES, f'u_{year}_maior.nc')
+    v_file = os.path.join(PATH_ERA_FILES, f'v_{year}_maior.nc')
+    hgt_file = os.path.join(PATH_ERA_FILES, f'hgt_{year}_maior.nc')
+
+    u_data = xr.open_dataset(u_file).sel(time=slice(start_date, end_date))
+    v_data = xr.open_dataset(v_file).sel(time=slice(start_date, end_date))
+    hgt_data = xr.open_dataset(hgt_file).sel(time=slice(start_date, end_date))
+
+    return u_data, v_data, hgt_data
+
+def plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date, subsampling_factor=10):
     skip_coords = (slice(None, None, subsampling_factor))
     skip_vars = (slice(None, None, subsampling_factor), slice(None, None, subsampling_factor))
 
-    # Create a new figure and axes with a specific projection
-    fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+    ax.clear()
 
     # Plot geopotential height (hgt)
     cf = ax.contourf(lon, lat, hgt, cmap='coolwarm')
@@ -43,51 +57,57 @@ def plot_map_hgt_winds(lon, lat, hgt, u, v, date, subsampling_factor=10):
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
 
-    # Add a colorbar
+    # Add a colorbar with appropriate vmin and vmax values
     cbar = plt.colorbar(cf, ax=ax, orientation='horizontal',
-                        pad=0.05, label='Geopotential Height')
+                        pad=0.05, label='Geopotential Height', extend='both')
 
-    return fig, ax
+    return cbar
 
-def animate_frames(frames, filename, interval=200):
-    fig, ax = frames[0]
-    ani = animation.ArtistAnimation(fig, frames[1:], interval=interval, blit=True)
-    ani.save(filename, writer='pillow', fps=4, dpi=150)
+def create_animation(df, output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-for date_index, row in df.iterrows():
-    start_date = row['start']
-    end_date = row['end']
-    year = date_index.year
+    for date_index, row in df.iterrows():
+        start_date = row['start']
+        end_date = row['end']
+        year = date_index.year
 
-    u_file = os.path.join(path_era_files, f'u_{year}_maior.nc')
-    v_file = os.path.join(path_era_files, f'v_{year}_maior.nc')
-    hgt_file = os.path.join(path_era_files, f'hgt_{year}_maior.nc')
+        u_data, v_data, hgt_data = load_data(year, start_date, end_date)
 
-    u_data = xr.open_dataset(u_file).sel(time=slice(start_date, end_date))
-    v_data = xr.open_dataset(v_file).sel(time=slice(start_date, end_date))
-    hgt_data = xr.open_dataset(hgt_file).sel(time=slice(start_date, end_date))
+        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+        camera = Camera(fig)
 
-    frames = []
-    for t in range(len(u_data.time)):
-        # Extract the variables for the current time step
-        u = u_data.isel(time=t)['u']
-        v = v_data.isel(time=t)['v']
-        hgt = hgt_data.isel(time=t)['z']
-        date = pd.to_datetime(u_data.time[t].values)
+        for t in range(len(u_data.time)):
+            # Extract the variables for the current time step
+            u = u_data.isel(time=t)['u']
+            v = v_data.isel(time=t)['v']
+            hgt = hgt_data.isel(time=t)['z']
+            date = pd.to_datetime(u_data.time[t].values)
 
-        # Get longitude and latitude coordinates
-        lon = u.longitude
-        lat = u.latitude
+            # Get longitude and latitude coordinates
+            lon = u.longitude
+            lat = u.latitude
 
-        # Plot map of hgt and wind vectors
-        fig, ax = plot_map_hgt_winds(lon, lat, hgt, u, v, date)
-        frames.append((fig, ax))
+            # Plot map of hgt and wind vectors
+            cbar = plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
 
-    # Create animation for the row and save as GIF
-    filename = f'animation_row_{date_index.strftime("%Y-%m-%d")}.gif'
-    animate_frames(frames, filename)
+            # Capture the current frame
+            camera.snap()
 
-    # Close the opened files
-    u_data.close()
-    v_data.close()
-    hgt_data.close()
+        animation = camera.animate()
+
+        # Create animation for the row and save as GIF
+        filename = os.path.join(output_dir, f'animation_row_{date_index.strftime("%Y-%m-%d")}.gif')
+        animation.save(filename, writer='pillow', fps=4, dpi=150)
+
+        # Close the opened files
+        u_data.close()
+        v_data.close()
+        hgt_data.close()
+
+def main():
+    df = load_dataframe(DF_FILENAME)
+    create_animation(df, OUTPUT_DIR)
+
+if __name__ == '__main__':
+    main()
