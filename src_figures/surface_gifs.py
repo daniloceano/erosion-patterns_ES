@@ -6,11 +6,12 @@
 #    By: Danilo <danilo.oceano@gmail.com>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/13 17:32:31 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/13 17:48:01 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-import os
+import glob
+import numpy as np
 import pandas as pd
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -49,7 +50,8 @@ def plot_map_hgt_winds(lon, lat, hgt, u, v, date, subsampling_factor=10):
     return fig, ax
 
 def animate_frames(frames, filename, interval=200):
-    ani = animation.ArtistAnimation(fig, frames, interval=interval, blit=True)
+    fig, ax = frames[0]
+    ani = animation.ArtistAnimation(fig, frames[1:], interval=interval, blit=True)
     ani.save(filename, writer='pillow', fps=4, dpi=150)
 
 for date_index, row in df.iterrows():
@@ -79,9 +81,7 @@ for date_index, row in df.iterrows():
 
         # Plot map of hgt and wind vectors
         fig, ax = plot_map_hgt_winds(lon, lat, hgt, u, v, date)
-        frames.append([ax])
-
-        plt.close()
+        frames.append((fig, ax))
 
     # Create animation for the row and save as GIF
     filename = f'animation_row_{date_index.strftime("%Y-%m-%d")}.gif'
