@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 12:31:08 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 12:41:38 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,7 +45,7 @@ def plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date, subsampling_factor=10):
     skip_vars = (slice(None, None, subsampling_factor), slice(None, None, subsampling_factor))
 
     # Plot geopotential height (hgt)
-    cf = ax.contourf(lon, lat, hgt, cmap='coolwarm')
+    cf = ax.contourf(lon, lat, hgt, cmap='coolwarm', levels=20, extend='both')
     ax.coastlines()
 
     # Plot wind vectors (u and v)
@@ -59,11 +59,7 @@ def plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date, subsampling_factor=10):
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
 
-    # Add a colorbar with appropriate vmin and vmax values
-    cbar = plt.colorbar(cf, ax=ax, orientation='horizontal',
-                        pad=0.05, label='Geopotential Height', extend='both')
-
-    return cbar
+    return cf
 
 def create_panels(df, output_dir):
     if not os.path.exists(output_dir):
@@ -93,10 +89,12 @@ def create_panels(df, output_dir):
         print(f'Number of rows: {num_rows}, number of columns: {num_cols}')
         print(f'Total number of figures: {num_subplots}')
         print(f'Length of time variable: {len(times)}')
-        print(f'Number of times subsampled for 12h: {times_12h}')
+        print(f'Number of times subsampled for 12h: {len(times_12h)}')
 
         fig = plt.figure(figsize=(12, 9))
         gs = GridSpec(num_rows, num_cols, figure=fig)
+
+        cbar = None  # Initialize colorbar variable
 
         for t, time_12h in enumerate(times_12h):
             # Extract the variables for the current time step
@@ -114,7 +112,15 @@ def create_panels(df, output_dir):
             ax = fig.add_subplot(gs[t // num_cols, t % num_cols], projection=ccrs.PlateCarree())
 
             # Plot map of hgt and wind vectors
-            plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
+            cf = plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
+
+            # Normalize colorbar
+            if cbar is None:
+                cbar = plt.colorbar(cf, ax=fig, orientation='horizontal',
+                                    pad=0.05, label='Geopotential Height', extend='both')
+            else:
+                cf.norm.vmin = cbar.norm.vmin
+                cf.norm.vmax = cbar.norm.vmax
 
         # Adjust the layout and spacing between subplots
         plt.tight_layout(pad=3)
