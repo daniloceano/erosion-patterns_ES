@@ -6,11 +6,10 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 12:07:48 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 12:14:55 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-import os
 import pandas as pd
 import xarray as xr
 import cartopy.crs as ccrs
@@ -26,9 +25,9 @@ def load_dataframe(filename):
     return df
 
 def load_data(year, start_date, end_date):
-    u_file = os.path.join(PATH_ERA_FILES, f'u_{year}_maior.nc')
-    v_file = os.path.join(PATH_ERA_FILES, f'v_{year}_maior.nc')
-    hgt_file = os.path.join(PATH_ERA_FILES, f'hgt_{year}_maior.nc')
+    u_file = os.path.join(PATH_ERA_FILES, f'u_{year}maior.nc')
+    v_file = os.path.join(PATH_ERA_FILES, f'v{year}maior.nc')
+    hgt_file = os.path.join(PATH_ERA_FILES, f'hgt{year}_maior.nc')
 
     if not all(os.path.exists(file) for file in [u_file, v_file, hgt_file]):
         print(f"Error: Some files do not exist for year {year}")
@@ -50,9 +49,9 @@ def plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date, subsampling_factor=10):
 
     # Plot wind vectors (u and v)
     ax.quiver(lon[skip_coords], lat[skip_coords], u[skip_vars], v[skip_vars],
-              transform=ccrs.PlateCarree(), scale=200,
-              width=0.003, headwidth=4, headlength=5, headaxislength=6,
-              alpha=0.8, zorder=10)
+            transform=ccrs.PlateCarree(), scale=200,
+            width=0.003, headwidth=4, headlength=5, headaxislength=6,
+            alpha=0.8, zorder=10)
 
     # Set plot title and labels
     ax.set_title(f'{date:%Y-%m-%d %HZ}')
@@ -64,6 +63,7 @@ def plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date, subsampling_factor=10):
                         pad=0.05, label='Geopotential Height', extend='both')
 
     return cbar
+
 
 def create_panels(df, output_dir):
     if not os.path.exists(output_dir):
@@ -85,7 +85,7 @@ def create_panels(df, output_dir):
 
         num_timesteps = len(u_data.time)
         num_cols = min(num_timesteps, 4)
-        num_rows = (num_timesteps + num_cols - 1) // num_cols
+        num_rows = (num_timesteps + 11) // 12  # Adjusted number of rows for every 12 hours
 
         print(f'Number of rows: {num_rows}, number of columns: {num_cols}')
 
@@ -129,4 +129,4 @@ def main():
     create_panels(df, OUTPUT_DIR)
 
 if __name__ == '__main__':
-    main()
+    main()  
