@@ -3,23 +3,24 @@
 #                                                         :::      ::::::::    #
 #    surface_gifs.py                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: Danilo <danilo.oceano@gmail.com>           +#+  +:+       +#+         #
+#    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/13 19:00:41 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 10:02:56 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
 
 import os
 import pandas as pd
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
-from celluloid import Camera
+from matplotlib.gridspec import GridSpec
 
 PATH_ERA_FILES = '/p1-nemo/mbonjour/novos_wt_dados/'
 DF_FILENAME = '../database/dates-limits.csv'
-OUTPUT_DIR = 'animation_output/'
+OUTPUT_DIR = '../figures_surface-patterns'
 
 def load_dataframe(filename):
     df = pd.read_csv(filename, index_col=0, parse_dates=[0])
@@ -39,8 +40,6 @@ def load_data(year, start_date, end_date):
 def plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date, subsampling_factor=10):
     skip_coords = (slice(None, None, subsampling_factor))
     skip_vars = (slice(None, None, subsampling_factor), slice(None, None, subsampling_factor))
-
-    ax.clear()
 
     # Plot geopotential height (hgt)
     cf = ax.contourf(lon, lat, hgt, cmap='coolwarm')
@@ -63,7 +62,7 @@ def plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date, subsampling_factor=10):
 
     return cbar
 
-def create_animation(df, output_dir):
+def create_panels(df, output_dir):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -74,10 +73,14 @@ def create_animation(df, output_dir):
 
         u_data, v_data, hgt_data = load_data(year, start_date, end_date)
 
-        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
-        camera = Camera(fig)
+        num_timesteps = len(u_data.time)
+        num_cols = min(num_timesteps, 4)
+        num_rows = (num_timesteps + num_cols - 1) // num_cols
 
-        for t in range(len(u_data.time)):
+        fig = plt.figure(figsize=(12, 9))
+        gs = GridSpec(num_rows, num_cols, figure=fig)
+
+        for t in range(num_timesteps):
             # Extract the variables for the current time step
             u = u_data.isel(time=t)['u']
             v = v_data.isel(time=t)['v']
@@ -88,17 +91,18 @@ def create_animation(df, output_dir):
             lon = u.longitude
             lat = u.latitude
 
+            # Create subplots within the grid
+            ax = fig.add_subplot(gs[t // num_cols, t % num_cols], projection=ccrs.PlateCarree())
+
             # Plot map of hgt and wind vectors
-            cbar = plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
+            plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
 
-            # Capture the current frame
-            camera.snap()
+        # Adjust the layout and spacing between subplots
+        plt.tight_layout(pad=3)
 
-        animation = camera.animate()
-
-        # Create animation for the row and save as GIF
-        filename = os.path.join(output_dir, f'animation_row_{date_index.strftime("%Y-%m-%d")}.gif')
-        animation.save(filename, writer='pillow', fps=4, dpi=150)
+        # Save the figure
+        filename = os.path.join(output_dir, f'panels_row_{date_index.strftime("%Y-%m-%d")}.png')
+        plt.savefig(filename, dpi=150)
 
         # Close the opened files
         u_data.close()
@@ -107,7 +111,7 @@ def create_animation(df, output_dir):
 
 def main():
     df = load_dataframe(DF_FILENAME)
-    create_animation(df, OUTPUT_DIR)
+    create_panels(df, OUTPUT_DIR)
 
 if __name__ == '__main__':
     main()
