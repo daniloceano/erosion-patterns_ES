@@ -49,7 +49,7 @@ new_df = grouped.apply(combine_dates).reset_index(drop=True)
 new_df['id'] = new_df['start'].dt.strftime('%Y%m%d')
 
 # Filter out rows with dates older than 2020
-new_df = new_df[new_df['start'].dt.year >= 2019]
+# new_df = new_df[new_df['start'].dt.year <= 2019]
 
 # Reset the index of the DataFrame
 new_df = new_df.reset_index(drop=True)
