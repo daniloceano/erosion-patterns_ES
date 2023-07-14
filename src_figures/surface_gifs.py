@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 10:09:47 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 10:13:46 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,6 +29,10 @@ def load_data(year, start_date, end_date):
     u_file = os.path.join(PATH_ERA_FILES, f'u_{year}_maior.nc')
     v_file = os.path.join(PATH_ERA_FILES, f'v_{year}_maior.nc')
     hgt_file = os.path.join(PATH_ERA_FILES, f'hgt_{year}_maior.nc')
+
+    if not all(os.path.exists(file) for file in [u_file, v_file, hgt_file]):
+        print(f"Error: Some files do not exist for year {year}")
+        return None
 
     u_data = xr.open_dataset(u_file).sel(time=slice(start_date, end_date))
     v_data = xr.open_dataset(v_file).sel(time=slice(start_date, end_date))
@@ -70,9 +74,14 @@ def create_panels(df, output_dir):
         end_date = row['end']
         year = date_index.year
 
-        print(f'Reading data for {row}..')
+        print(f'Reading data for:\n {row}')
 
-        u_data, v_data, hgt_data = load_data(year, start_date, end_date)
+        data = load_data(year, start_date, end_date)
+
+        if data is None:
+            continue
+
+        u_data, v_data, hgt_data = data
 
         num_timesteps = len(u_data.time)
         num_cols = min(num_timesteps, 4)
@@ -87,7 +96,7 @@ def create_panels(df, output_dir):
             v = v_data.isel(time=t)['v']
             hgt = hgt_data.isel(time=t)['z']
             date = pd.to_datetime(u_data.time[t].values)
-            print(date)
+
 
             # Get longitude and latitude coordinates
             lon = u.longitude
@@ -95,6 +104,7 @@ def create_panels(df, output_dir):
 
             if t % 12 == 0:  # Plot every 12 hours
                 # Create subplots within the grid
+                print(f'plotting {date}')
                 ax = fig.add_subplot(gs[t // num_cols, t % num_cols], projection=ccrs.PlateCarree())
 
                 # Plot map of hgt and wind vectors
