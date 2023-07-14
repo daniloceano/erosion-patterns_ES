@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 10:02:56 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 10:05:51 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -71,6 +71,8 @@ def create_panels(df, output_dir):
         end_date = row['end']
         year = date_index.year
 
+        print(f'Reading data for {row}..')
+
         u_data, v_data, hgt_data = load_data(year, start_date, end_date)
 
         num_timesteps = len(u_data.time)
@@ -86,6 +88,7 @@ def create_panels(df, output_dir):
             v = v_data.isel(time=t)['v']
             hgt = hgt_data.isel(time=t)['z']
             date = pd.to_datetime(u_data.time[t].values)
+            print(date)
 
             # Get longitude and latitude coordinates
             lon = u.longitude
