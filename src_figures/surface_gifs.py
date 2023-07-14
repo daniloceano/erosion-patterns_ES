@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 12:41:38 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 12:45:17 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -116,7 +116,7 @@ def create_panels(df, output_dir):
 
             # Normalize colorbar
             if cbar is None:
-                cbar = plt.colorbar(cf, ax=fig, orientation='horizontal',
+                cbar = plt.colorbar(cf, ax=ax, orientation='horizontal',
                                     pad=0.05, label='Geopotential Height', extend='both')
             else:
                 cf.norm.vmin = cbar.norm.vmin
