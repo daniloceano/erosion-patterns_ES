@@ -6,10 +6,11 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 12:14:55 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 12:15:49 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
+import os
 import pandas as pd
 import xarray as xr
 import cartopy.crs as ccrs
