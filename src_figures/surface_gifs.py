@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 12:55:44 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 12:56:14 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -124,7 +124,7 @@ def create_panels(df, output_dir):
                 cf.norm.vmax = cbar.norm.vmax
 
         # Adjust the layout and spacing between subplots
-        plt.tight_layout(pad=3)
+        plt.tight_layout()
 
         # Save the figure
         filename = os.path.join(output_dir, f'panels_row_{date_index.strftime("%Y-%m-%d")}.png')
