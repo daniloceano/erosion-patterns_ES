@@ -6,10 +6,9 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 10:05:51 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 10:09:47 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
-
 
 import os
 import pandas as pd
@@ -94,11 +93,12 @@ def create_panels(df, output_dir):
             lon = u.longitude
             lat = u.latitude
 
-            # Create subplots within the grid
-            ax = fig.add_subplot(gs[t // num_cols, t % num_cols], projection=ccrs.PlateCarree())
+            if t % 12 == 0:  # Plot every 12 hours
+                # Create subplots within the grid
+                ax = fig.add_subplot(gs[t // num_cols, t % num_cols], projection=ccrs.PlateCarree())
 
-            # Plot map of hgt and wind vectors
-            plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
+                # Plot map of hgt and wind vectors
+                plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
 
         # Adjust the layout and spacing between subplots
         plt.tight_layout(pad=3)
