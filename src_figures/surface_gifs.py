@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 12:18:01 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 12:21:00 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -85,32 +85,33 @@ def create_panels(df, output_dir):
 
         num_timesteps = len(u_data.time)
         num_cols = min(num_timesteps, 4)
-        num_rows = (num_timesteps + 11) // 12  # Adjusted number of rows for every 12 hours
+        num_rows = (num_timesteps + num_cols - 1) // num_cols
+        num_subplots = num_rows * num_cols
 
         print(f'Number of rows: {num_rows}, number of columns: {num_cols}')
 
         fig = plt.figure(figsize=(12, 9))
         gs = GridSpec(num_rows, num_cols, figure=fig)
 
-        for t in range(num_timesteps):
-            # Extract the variables for the current time step
-            u = u_data.isel(time=t)['u']
-            v = v_data.isel(time=t)['v']
-            hgt = hgt_data.isel(time=t)['z']
-            date = pd.to_datetime(u_data.time[t].values)
+        for t in range(num_subplots):
+            if t < num_timesteps:
+                # Extract the variables for the current time step
+                u = u_data.isel(time=t)['u']
+                v = v_data.isel(time=t)['v']
+                hgt = hgt_data.isel(time=t)['z']
+                date = pd.to_datetime(u_data.time[t].values)
 
+                # Get longitude and latitude coordinates
+                lon = u.longitude
+                lat = u.latitude
 
-            # Get longitude and latitude coordinates
-            lon = u.longitude
-            lat = u.latitude
+                if t % 12 == 0:  # Plot every 12 hours
+                    # Create subplots within the grid
+                    print(f'plotting {date}')
+                    ax = fig.add_subplot(gs[t // num_cols, t % num_cols], projection=ccrs.PlateCarree())
 
-            if t % 12 == 0:  # Plot every 12 hours
-                # Create subplots within the grid
-                print(f'plotting {date}')
-                ax = fig.add_subplot(gs[t // num_cols, t % num_cols], projection=ccrs.PlateCarree())
-
-                # Plot map of hgt and wind vectors
-                plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
+                    # Plot map of hgt and wind vectors
+                    plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
 
         # Adjust the layout and spacing between subplots
         plt.tight_layout(pad=3)
