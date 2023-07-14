@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 10:13:46 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 12:07:48 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -86,6 +86,8 @@ def create_panels(df, output_dir):
         num_timesteps = len(u_data.time)
         num_cols = min(num_timesteps, 4)
         num_rows = (num_timesteps + num_cols - 1) // num_cols
+
+        print(f'Number of rows: {num_rows}, number of columns: {num_cols}')
 
         fig = plt.figure(figsize=(12, 9))
         gs = GridSpec(num_rows, num_cols, figure=fig)
