@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 12:56:14 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 13:01:40 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -91,9 +91,9 @@ def create_panels(df, output_dir):
         print(f'Length of time variable: {len(times)}')
         print(f'Number of times subsampled for 12h: {len(times_12h)}')
 
-        fig = plt.figure(figsize=(12, 9))
+        fig = plt.figure(figsize=(10, 10))
         gs = GridSpec(num_rows, num_cols, figure=fig)
-        cbar_ax = fig.add_axes([0.1, 0.1, 0.8, 0.03])  # Colorbar axes
+        cbar_ax = fig.add_axes([-0.1, 0.1, 0.8, 0.03])  # Colorbar axes
 
         cbar = None  # Initialize colorbar variable
 
