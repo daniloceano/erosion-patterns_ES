@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 12:45:17 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 12:55:44 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -93,6 +93,7 @@ def create_panels(df, output_dir):
 
         fig = plt.figure(figsize=(12, 9))
         gs = GridSpec(num_rows, num_cols, figure=fig)
+        cbar_ax = fig.add_axes([0.1, 0.1, 0.8, 0.03])  # Colorbar axes
 
         cbar = None  # Initialize colorbar variable
 
@@ -116,7 +117,7 @@ def create_panels(df, output_dir):
 
             # Normalize colorbar
             if cbar is None:
-                cbar = plt.colorbar(cf, ax=ax, orientation='horizontal',
+                cbar = plt.colorbar(cf, cax=cbar_ax, orientation='horizontal',
                                     pad=0.05, label='Geopotential Height', extend='both')
             else:
                 cf.norm.vmin = cbar.norm.vmin
