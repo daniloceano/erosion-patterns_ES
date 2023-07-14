@@ -6,7 +6,7 @@
 #    By: Danilo  <danilo.oceano@gmail.com>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 16:29:58 by Danilo            #+#    #+#              #
-#    Updated: 2023/07/14 12:21:00 by Danilo           ###   ########.fr        #
+#    Updated: 2023/07/14 12:31:08 by Danilo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -74,8 +74,6 @@ def create_panels(df, output_dir):
         end_date = row['end']
         year = date_index.year
 
-        print(f'Reading data for:\n {row}')
-
         data = load_data(year, start_date, end_date)
 
         if data is None:
@@ -83,35 +81,40 @@ def create_panels(df, output_dir):
 
         u_data, v_data, hgt_data = data
 
-        num_timesteps = len(u_data.time)
+        times = pd.to_datetime(u_data.time.values)
+        times_12h = times[times.hour % 12 == 0]
+
+        num_timesteps = len(times_12h)
         num_cols = min(num_timesteps, 4)
         num_rows = (num_timesteps + num_cols - 1) // num_cols
         num_subplots = num_rows * num_cols
 
+        print(f'Starting date: {start_date}, Ending date: {end_date}')
         print(f'Number of rows: {num_rows}, number of columns: {num_cols}')
+        print(f'Total number of figures: {num_subplots}')
+        print(f'Length of time variable: {len(times)}')
+        print(f'Number of times subsampled for 12h: {times_12h}')
 
         fig = plt.figure(figsize=(12, 9))
         gs = GridSpec(num_rows, num_cols, figure=fig)
 
-        for t in range(num_subplots):
-            if t < num_timesteps:
-                # Extract the variables for the current time step
-                u = u_data.isel(time=t)['u']
-                v = v_data.isel(time=t)['v']
-                hgt = hgt_data.isel(time=t)['z']
-                date = pd.to_datetime(u_data.time[t].values)
+        for t, time_12h in enumerate(times_12h):
+            # Extract the variables for the current time step
+            u = u_data.sel(time=time_12h)['u']
+            v = v_data.sel(time=time_12h)['v']
+            hgt = hgt_data.sel(time=time_12h)['z']
+            date = time_12h
 
-                # Get longitude and latitude coordinates
-                lon = u.longitude
-                lat = u.latitude
+            # Get longitude and latitude coordinates
+            lon = u.longitude
+            lat = u.latitude
 
-                if t % 12 == 0:  # Plot every 12 hours
-                    # Create subplots within the grid
-                    print(f'plotting {date}')
-                    ax = fig.add_subplot(gs[t // num_cols, t % num_cols], projection=ccrs.PlateCarree())
+            # Create subplots within the grid
+            print(f'Plotting panel for time: {date}')
+            ax = fig.add_subplot(gs[t // num_cols, t % num_cols], projection=ccrs.PlateCarree())
 
-                    # Plot map of hgt and wind vectors
-                    plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
+            # Plot map of hgt and wind vectors
+            plot_map_hgt_winds(ax, lon, lat, hgt, u, v, date)
 
         # Adjust the layout and spacing between subplots
         plt.tight_layout(pad=3)
@@ -119,6 +122,7 @@ def create_panels(df, output_dir):
         # Save the figure
         filename = os.path.join(output_dir, f'panels_row_{date_index.strftime("%Y-%m-%d")}.png')
         plt.savefig(filename, dpi=150)
+        print(f'Panel saved: {filename}')
 
         # Close the opened files
         u_data.close()
