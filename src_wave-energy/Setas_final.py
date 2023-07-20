@@ -46,7 +46,9 @@ def grid_labels_params(ax,i):
                       linewidth=1, color='gray', alpha=0.5,linestyle='--')
     gl.top_labels = False
     gl.right_labels = False
-    if i not in [0,3]:
+    if i not in [2,3]:
+        gl.bottom_labels=False
+    if i not in [0,2]:
         gl.left_labels = False
     gl.xlabel_style = {'size': 12, 'color': '#383838'}
     gl.ylabel_style = {'size': 12, 'color': '#383838'}
