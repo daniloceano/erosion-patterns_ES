@@ -1,21 +1,6 @@
 import xarray as xr
 import numpy as np
 import pandas as pd
-    
-#Carregando a batimetria
-ds = xr.open_dataset('/p1-nemo/rtecchio/Dados/GEBCO/gebco_2023_costa_s_se.nc')
-prof2 = ds['elevation'][:]
-prof_filtred = prof2.where(prof2 <= 0)
-prof_filtred.min()
-prof_filtred.max()
-# Arquivo com a posição dos pontos na costa do ES
-ptos = pd.read_csv('/p1-nemo/rtecchio/teste_chico/ptos_iso_100_BRANCO.csv',sep=",")
-lat=ptos['lat']
-lon=ptos['lon']
-
-###############################################
-#Plotando
-import matplotlib
 import matplotlib.pyplot as plt
 import cartopy, cartopy.crs as ccrs 
 import cartopy.crs as ccrs
@@ -24,7 +9,6 @@ from cartopy.feature import NaturalEarthFeature, COASTLINE
 from cartopy.feature import BORDERS
 import cmocean as cmo
 
-google_maps_colors = ['#ebebeb', '#c7c7c7', '#b0b0b0', '#999999', '#7e7e7e', '#666666', '#4d4d4d', '#333333', '#1a1a1a', '#0c7b12']
 def map_features(ax):
     ax.add_feature(COASTLINE)
     ax.add_feature(BORDERS, edgecolor='#383838')
@@ -52,9 +36,23 @@ def grid_labels_params(ax,i):
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
     return ax
-   
-# make figure with points 
 
+#Carregando a batimetria
+ds = xr.open_dataset('/p1-nemo/rtecchio/Dados/GEBCO/gebco_2023_costa_s_se.nc')
+prof2 = ds['elevation'][:]
+prof_filtred = prof2.where(prof2 <= 0)
+prof_filtred.min()
+prof_filtred.max()
+# Arquivo com a posição dos pontos na costa do ES
+ptos = pd.read_csv('/p1-nemo/rtecchio/teste_chico/ptos_iso_100_BRANCO.csv',sep=",")
+lat=ptos['lat']
+lon=ptos['lon']
+
+###############################################
+#Plotando
+google_maps_colors = ['#ebebeb', '#c7c7c7', '#b0b0b0', '#999999', '#7e7e7e', '#666666', '#4d4d4d', '#333333', '#1a1a1a', '#0c7b12']
+
+# make figure with points 
 data_min = prof_filtred.min()
 data_max = prof_filtred.max()
 interval = 50
