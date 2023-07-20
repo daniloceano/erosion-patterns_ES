@@ -192,6 +192,8 @@ for data_ressaca in datas_ressaca:
     
     # Criar subplots para os quatro dias
     for i, dia in enumerate(range(-dias_antes, dias_depois + 1)):
+        #Incrementar 1 ao valor de dia para o título
+        dia += 2
         ax = fig.add_subplot(gs[i], projection=ccrs.PlateCarree())
         
         # Configurar o mapa e suas características
@@ -211,7 +213,7 @@ for data_ressaca in datas_ressaca:
         color_energy2 = PPar_ponto1 if i in [0, 1] else PPar_ponto2 if i == 2 else PPar_ponto3
         
         cmap_dia = cm.get_cmap('jet')
-        norm_dia = colors.TwoSlopeNorm(vmin=-10, vcenter=0, vmax=40)
+        norm_dia = colors.TwoSlopeNorm(vmin=-10, vcenter=0, vmax=50)
         colors_dia = cmap_dia(norm_dia(color_energy))
         colors_dia2 = cmap_dia(norm_dia(color_energy2))
         
@@ -219,7 +221,7 @@ for data_ressaca in datas_ressaca:
         ax.quiver(lon_pto1, lat_pto1,  u2, v2, color=colors_dia2, edgecolor='k', linewidth=1, pivot='tip', scale=20, width=0.015)
         
         # Adicionar título ao subplot com a data do dia
-        titulo = f'Dia {dia}: {inicio_janela + pd.Timedelta(days=dia):%Y-%m-%d}'
+        titulo = f'Dia: {inicio_janela + pd.Timedelta(days=dia):%Y-%m-%d}'
         ax.set_title(titulo, fontsize=12)
     
     # Adicionar barra de cores para PPer
